@@ -8,31 +8,21 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 
-
-
 # Set the path to the dataset
-dataset_path = r"D:/Brain-Tumor-Detection-main"
+dataset_path = r"D:\Brain-Tumor-Detection-main"
 dir_list=os.listdir(dataset_path)
 
 # Define the training and testing directories
-train_dir = os.path.join(dataset_path, r"D:/Brain-Tumor-Detection-main/Training")
-test_dir = os.path.join(dataset_path, r"D:/Brain-Tumor-Detection-main/Testing")
-print("Dataset path:", dataset_path)
-print("Train path:", train_dir)
-print("Test path:", test_dir)
+train_dir = os.path.join(dataset_path, r"Training")
+test_dir = os.path.join(dataset_path, r"Testing")
 
 # Define the categories
 categories = ["glioma", "meningioma", "notumor", "pituitary"]
-
 
 # Load and preprocess the dataset
 train_data = []
 for category in categories:
     folder_path = os.path.join(train_dir, category)
-    if not os.path.exists(folder_path):
-        print(f"Folder not found: {folder_path}")
-    else:
-        print(f"Folder exists: {folder_path}")
     images = os.listdir(folder_path)
     count = len(images)
     train_data.append(pd.DataFrame({"Image": images, "Category": [category] * count, "Count": [count] * count}))
@@ -47,7 +37,6 @@ plt.xlabel("Tumor Type")
 plt.ylabel("Count")
 plt.show()
 
-
 # Visualize sample images for each tumor type
 plt.figure(figsize=(12, 8))
 for i, category in enumerate(categories):
@@ -61,18 +50,14 @@ for i, category in enumerate(categories):
 plt.tight_layout()
 plt.show()
 
-
-
 # Set the image size
 image_size = (150, 150)
 
 # Set the batch size for training
-batch_size = 32
+batch_size = 64
 
 # Set the number of epochs for training
-epochs = 25
-
-
+epochs = 30
 
 # Data augmentation and preprocessing
 train_datagen = ImageDataGenerator(
@@ -104,8 +89,6 @@ test_generator = test_datagen.flow_from_directory(
     shuffle=False
 )
 
-
-
 # Define the model architecture
 model = Sequential([
     Conv2D(32, (3, 3), activation="relu", input_shape=(image_size[0], image_size[1], 3)),
@@ -125,8 +108,6 @@ model = Sequential([
 # Compile the model
 model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
-
-
 # Train the model
 history = model.fit(
     train_generator,
@@ -135,9 +116,6 @@ history = model.fit(
     validation_data=test_generator,
     validation_steps=test_generator.samples // batch_size
 )
-
-
-
 
 # Plot the training and validation accuracy over epochs
 plt.plot(history.history['accuracy'])
@@ -148,8 +126,6 @@ plt.ylabel('Accuracy')
 plt.legend(['Train', 'Validation'])
 plt.show()
 
-
-
 # Plot the training and validation loss over epochs
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
@@ -159,12 +135,10 @@ plt.ylabel('Loss')
 plt.legend(['Train', 'Validation'])
 plt.show()
 
-
 # Evaluate the model
 loss, accuracy = model.evaluate(test_generator, steps=test_generator.samples // batch_size)
 print("Test Loss:", loss)
 print("Test Accuracy:", accuracy)
-
 
 # Make predictions on the test dataset
 predictions = model.predict(test_generator)
@@ -201,7 +175,6 @@ for i in range(9):
 plt.tight_layout()
 plt.show()
 
-
 # Calculate precision, recall, and F1-score from the confusion matrix
 precision = np.diag(confusion_matrix) / np.sum(confusion_matrix, axis=0)
 recall = np.diag(confusion_matrix) / np.sum(confusion_matrix, axis=1)
@@ -228,3 +201,6 @@ for i in range(9):
     plt.axis("off")
 plt.tight_layout()
 plt.show()
+
+# Save the trained model
+model.save("brain_tumor_detection_model.h5")
